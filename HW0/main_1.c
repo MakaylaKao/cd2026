@@ -8,9 +8,23 @@ typedef struct Node {
     struct Node *next;
 } Node;
 
-/* Create and initialize a new node */
-Node *create_node(unsigned char ch) {
+/* Find a character in the linked list */
+Node *find_char(Node *head, unsigned char target) {
+    Node *current = head;
+    while (current != NULL) {
+        if (current->ch == target) {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+/* Append a new node to the end of the linked list */
+void append_node(Node **head, unsigned char ch) {
     Node *new_node = (Node *)malloc(sizeof(Node));
+    Node *current;
+
     if (new_node == NULL) {
         printf("Memory allocation failed.\n");
         exit(1);
@@ -19,18 +33,17 @@ Node *create_node(unsigned char ch) {
     new_node->ch = ch;
     new_node->count = 1;
     new_node->next = NULL;
-    return new_node;
-}
 
-/* Append a node to the end of the linked list */
-void append_node(Node **head, Node **tail, Node *new_node) {
     if (*head == NULL) {
         *head = new_node;
-        *tail = new_node;
-    } else {
-        (*tail)->next = new_node;
-        *tail = new_node;
+        return;
     }
+
+    current = *head;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+    current->next = new_node;
 }
 
 /* Print the counting result */
@@ -68,8 +81,7 @@ void free_list(Node *head) {
 int main(void) {
     FILE *fp;
     Node *head = NULL;
-    Node *tail = NULL;
-    Node *table[256] = {0};   /* Lookup table for O(1) average access */
+    Node *found;
     int c;
 
     /* Read the source code file itself */
@@ -80,14 +92,11 @@ int main(void) {
     }
 
     while ((c = fgetc(fp)) != EOF) {
-        unsigned char ch = (unsigned char)c;
-
-        if (table[ch] != NULL) {
-            table[ch]->count++;
+        found = find_char(head, (unsigned char)c);
+        if (found != NULL) {
+            found->count++;
         } else {
-            Node *new_node = create_node(ch);
-            append_node(&head, &tail, new_node);
-            table[ch] = new_node;
+            append_node(&head, (unsigned char)c);
         }
     }
 
